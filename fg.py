@@ -213,6 +213,9 @@ Otherwise, you may go 'Back' or 'Quit.'
                 quit
             elif openWeb in graph_strings:
                 graph_posplr(player_name, attempt[2:-1])
+            else:
+                print("Oops, that didnt work. Let's try again.")
+                find_player()
             
 
 def find_team():
@@ -262,7 +265,9 @@ def find_team():
             i += 1
             print(f"[{i}] {a}")
         next_input = input('''
-Type the player's associated number to open their page on Fangraphs, or type 'back' or 'exit'.
+You may select a player by typing their associated number.
+
+Otherwise, you may type 'back' to go back, or 'quit' to quit.
 ''')
         if next_input in back_strings:
             find_team()
@@ -711,39 +716,45 @@ def graph_posplr(player_name1, player_data):
         positionsearch = BeautifulSoup(response.text, 'html.parser')
         positionalarg = positionsearch.findAll('p')
         pos = positionalarg[0].text
-        response = requests.get(player_page_url)
-        soup = BeautifulSoup(response.text, 'html.parser')
-        find_chart = soup.find(class_="p1")
-        stats = find_chart.find_all('p')
-        find_second = soup.find(class_='p2')
-        stats2 = find_second.find_all('p')
-        try:
-            attempt2 = [f"{player_name_second}", f"{player_name_first}", f"{stats[1].text}", f"{stats[3].text}", f"{stats[5].text}", f"{stats[7].text}", f"{stats2[3].text}", f"{stats2[5].text}", f"{stats[9].text}"]
-            if attempt2 not in position_players:
-                position_players.append(attempt2)
-        except:
-            attempt2 = [f"{player_name_second}", f"{player_name_first}", f"{stats[0].text}", f"{stats[1].text}", f"{stats[2].text}", f"{stats[3].text}", f"{stats2[1].text}", f"{stats2[2].text}", f"{stats[4].text}"]
-            if attempt2 not in position_players:
-                position_players.append(attempt2)
-        with open("positionplayers.csv", "r") as target:
-            reader = csv.reader(target)
-            if attempt2 not in reader:
-                with open("positionplayers.csv", mode='a') as posplr:
-                    writer = csv.writer(posplr, delimiter=',')
-                    writer.writerow(attempt2)
-            else:
-                pass
-        build_db_player()
+        if 'Pitcher' in pos:
+            print('''
+Sorry! That didnt work. Make sure youre not trying to compare a pitcher to a position player!
 
-    stats = ['Wins Above Replacement', 'At Bats', 'Hits', 'Home Runs', 'RBI', 'Stolen Bases']
-    fig = go.Figure(data=[
-        go.Bar(name=f'{second}', x=stats, y=attempt2[2:-1]),
-        go.Bar(name=f'{player_name1}', x=stats, y=player_data)
-    ])
-    # Change the bar mode
-    fig.update_layout(barmode='group')
-    fig.show()
-    context()
+''')
+            context()
+        else:
+            response = requests.get(player_page_url)
+            soup = BeautifulSoup(response.text, 'html.parser')
+            find_chart = soup.find(class_="p1")
+            stats = find_chart.find_all('p')
+            find_second = soup.find(class_='p2')
+            stats2 = find_second.find_all('p')
+            try:
+                attempt2 = [f"{player_name_second}", f"{player_name_first}", f"{stats[1].text}", f"{stats[3].text}", f"{stats[5].text}", f"{stats[7].text}", f"{stats2[3].text}", f"{stats2[5].text}", f"{stats[9].text}"]
+                if attempt2 not in position_players:
+                    position_players.append(attempt2)
+            except:
+                attempt2 = [f"{player_name_second}", f"{player_name_first}", f"{stats[0].text}", f"{stats[1].text}", f"{stats[2].text}", f"{stats[3].text}", f"{stats2[1].text}", f"{stats2[2].text}", f"{stats[4].text}"]
+                if attempt2 not in position_players:
+                    position_players.append(attempt2)
+            with open("positionplayers.csv", "r") as target:
+                reader = csv.reader(target)
+                if attempt2 not in reader:
+                    with open("positionplayers.csv", mode='a') as posplr:
+                        writer = csv.writer(posplr, delimiter=',')
+                        writer.writerow(attempt2)
+                else:
+                    pass
+            build_db_player()
+            stats = ['Wins Above Replacement', 'At Bats', 'Hits', 'Home Runs', 'RBI', 'Stolen Bases']
+            fig = go.Figure(data=[
+                go.Bar(name=f'{second}', x=stats, y=attempt2[2:-1]),
+                go.Bar(name=f'{player_name1}', x=stats, y=player_data)
+            ])
+            # Change the bar mode
+            fig.update_layout(barmode='group')
+            fig.show()
+            context()
 
 def graph_pitcher(player_name1, player_data):
     del player_data[3]
@@ -773,40 +784,52 @@ def graph_pitcher(player_name1, player_data):
         positionsearch = BeautifulSoup(response.text, 'html.parser')
         positionalarg = positionsearch.findAll('p')
         pos = positionalarg[0].text
-        if 'Pitcher' in pos:
-            response = requests.get(player_page_url)
-            soup = BeautifulSoup(response.text, 'html.parser')
-            find_chart = soup.find(class_="p1")
-            stats = find_chart.find_all('p')
-            find_second = soup.find(class_='p2')
-            stats2 = find_second.find_all('p')
-            try:
-                attempt2 = [f"{player_name_second}", f"{player_name_first}", f"{stats[1].text}", f"{stats[3].text}", f"{stats[5].text}", f"{stats[7].text}", f"{stats2[1].text}", f"{stats2[3].text}", f"{stats2[5].text}"]
-                if attempt2 not in pitchers:
-                    pitchers.append(attempt2)
-            except:
-                attempt2 = [f"{player_name_second}", f"{player_name_first}", f"{stats[0].text}", f"{stats[1].text}", f"{stats[2].text}", f"{stats[3].text}", f"{stats2[0].text}", f"{stats2[1].text}", f"{stats2[2].text}"]   
-                if attempt2 not in pitchers:
-                    pitchers.append(attempt2)
-            with open("pitchers.csv", "r") as target:
-                reader = csv.reader(target)
-                if attempt2 not in reader:
-                    with open("pitchers.csv", mode='a+') as pitchercsv:
-                        writer = csv.writer(pitchercsv, delimiter=',')
-                        writer.writerow(attempt2)
-                else:
-                    pass
-            build_db_pitcher()
-    stats = ['Wins Above Replacement', 'Wins', 'Losses', 'Games Pitched', 'Games Started', 'Saves']
-    at2 = attempt2[2:]
-    del at2[3]
-    fig = go.Figure(data=[
-        go.Bar(name=f'{second}', x=stats, y=at2),
-        go.Bar(name=f'{player_name1}', x=stats, y=player_data)
-    ])
-    fig.update_layout(barmode='group')
-    fig.show()
-    context()
+        try:
+            if 'Pitcher' in pos:
+                response = requests.get(player_page_url)
+                soup = BeautifulSoup(response.text, 'html.parser')
+                find_chart = soup.find(class_="p1")
+                stats = find_chart.find_all('p')
+                find_second = soup.find(class_='p2')
+                stats2 = find_second.find_all('p')
+                try:
+                    attempt2 = [f"{player_name_second}", f"{player_name_first}", f"{stats[1].text}", f"{stats[3].text}", f"{stats[5].text}", f"{stats[7].text}", f"{stats2[1].text}", f"{stats2[3].text}", f"{stats2[5].text}"]
+                    if attempt2 not in pitchers:
+                        pitchers.append(attempt2)
+                except:
+                    attempt2 = [f"{player_name_second}", f"{player_name_first}", f"{stats[0].text}", f"{stats[1].text}", f"{stats[2].text}", f"{stats[3].text}", f"{stats2[0].text}", f"{stats2[1].text}", f"{stats2[2].text}"]   
+                    if attempt2 not in pitchers:
+                        pitchers.append(attempt2)
+                with open("pitchers.csv", "r") as target:
+                    reader = csv.reader(target)
+                    if attempt2 not in reader:
+                        with open("pitchers.csv", mode='a+') as pitchercsv:
+                            writer = csv.writer(pitchercsv, delimiter=',')
+                            writer.writerow(attempt2)
+                    else:
+                        pass
+                build_db_pitcher()
+                stats = ['Wins Above Replacement', 'Wins', 'Losses', 'Games Pitched', 'Games Started', 'Saves']
+                at2 = attempt2[2:]
+                del at2[3]
+                fig = go.Figure(data=[
+                    go.Bar(name=f'{second}', x=stats, y=at2),
+                    go.Bar(name=f'{player_name1}', x=stats, y=player_data)
+                ])
+                fig.update_layout(barmode='group')
+                fig.show()
+                context()
+            else:
+                print('''
+Sorry! That didnt work. Make sure youre not trying to compare a pitcher to a position player!
 
-if __name__ == "__main__":
-    context()
+''')
+                context()
+        except:
+            print('''
+Sorry! That didnt work. Make sure youre not trying to compare a pitcher to a position player!
+
+''')
+            context()
+
+context()
